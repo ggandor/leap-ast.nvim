@@ -2,7 +2,7 @@ local api = vim.api
 -- Note: The functions used here will be upstreamed eventually.
 local ts_utils = require('nvim-treesitter.ts_utils')
 
-local function get_nodes()
+local function get_ast_nodes()
   local wininfo = vim.fn.getwininfo(api.nvim_get_current_win())[1]
   -- Get current TS node.
   local cur_node = ts_utils.get_node_at_cursor(0)
@@ -32,25 +32,19 @@ local function select_range(target)
     -- Force going back to Normal (implies mode = v | V | ).
     vim.cmd('normal! ' .. mode)
   end
-  local vmode = "charwise"
-  if mode:match('V') then
-    vmode = 'linewise'
-  elseif mode:match('') then
-    vmode = 'blockwise'
-  end
-  ts_utils.update_selection(0, target.node, vmode)
-end
-
-local function jump(target)
-  startline, startcol, _, _ = target.node:range()          -- (0,0)
-  api.nvim_win_set_cursor(0, { startline + 1, startcol })  -- (1,0)
+  ts_utils.update_selection(0, target.node,
+    mode:match('V') and 'linewise' or
+    mode:match('') and 'blockwise' or
+    'charwise'
+  )
 end
 
 local function leap()
-  local targets = get_nodes()
-  local action = api.nvim_get_mode().mode == 'n' and jump or select_range
-  require('leap').leap { targets = targets, action = action, backward = true }
+  require('leap').leap {
+    targets = get_ast_nodes(),
+    action = api.nvim_get_mode().mode ~= 'n' and select_range,  -- or jump
+    backward = true
+  }
 end
-
 
 return { leap = leap }
