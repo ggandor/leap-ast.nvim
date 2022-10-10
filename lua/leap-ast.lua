@@ -16,6 +16,7 @@ local function get_ast_nodes()
   end
   -- Create Leap targets from TS nodes.
   local targets = {}
+  local startline, startcol
   for _, node in ipairs(nodes) do
     startline, startcol, _, _ = node:range()  -- (0,0)
     if startline + 1 >= wininfo.topline then
