@@ -42,6 +42,55 @@ local function select_range(target)
   )
 end
 
+local function create_augroup()
+  return vim.api.nvim_create_augroup("leap-ast", {})
+end
+
+--- On select_range, create autocommands to label forward in addition to backward.
+local function label_forward()
+  local group_id = create_augroup()
+  local ns = vim.api.nvim_create_namespace("leap-ast")
+
+  vim.api.nvim_create_autocmd("User", {
+    pattern = "LeapEnter",
+    group = group_id,
+    once = true,
+    callback = function()
+      local state = require('leap').state
+
+      -- abort if this event does not come from leap-ast
+      if state.args.module ~= module then
+        return
+      end
+
+      -- label forward
+      local opts = state.args.opts or {}
+      local labels = opts.labels or require('leap').opts.labels
+      for i, v in pairs(state.args.targets) do
+        vim.api.nvim_buf_set_extmark(0, ns, v.pos[3] - 1, v.pos[4] - 1, {
+          virt_text = { { labels[i], "LeapLabelPrimary" } },
+          virt_text_pos = "overlay",
+          hl_mode = "combine",
+          priority = require('leap.highlight').priority.label
+        })
+      end
+    end
+  })
+
+  vim.api.nvim_create_autocmd("User", {
+    pattern = "LeapLeave",
+    group = group_id,
+    once = true,
+    callback = function()
+      local state = require('leap').state
+      -- continue iff this event comes from leap-ast
+      if state.args.module == module then
+        vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+      end
+    end
+  })
+end
+
 local function leap()
   require('leap').leap {
     targets = get_ast_nodes(),
