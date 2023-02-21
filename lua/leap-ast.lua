@@ -92,11 +92,17 @@ local function label_forward()
 end
 
 local function leap()
-  require('leap').leap {
+  local opts = {
     targets = get_ast_nodes(),
-    action = api.nvim_get_mode().mode ~= 'n' and select_range,  -- or jump
-    backward = true
+    backward = true,
+    module = "leap-ast",
   }
+  if api.nvim_get_mode().mode ~= 'n' then
+    opts.action = select_range
+    opts.target_windows = { vim.api.nvim_get_current_win() }
+    label_forward()
+  end
+  require('leap').leap(opts)
 end
 
 return { leap = leap }
