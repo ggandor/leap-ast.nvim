@@ -2,6 +2,8 @@ local api = vim.api
 -- Note: The functions used here will be upstreamed eventually.
 local ts_utils = require('nvim-treesitter.ts_utils')
 
+local module = 'leap-ast'
+
 local function get_ast_nodes()
   local wininfo = vim.fn.getwininfo(api.nvim_get_current_win())[1]
   -- Get current TS node.
