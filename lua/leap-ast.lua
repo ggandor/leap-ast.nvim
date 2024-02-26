@@ -42,7 +42,7 @@ end
 
 local function leap()
   require('leap').leap {
-    targets = get_ast_nodes(),
+    targets = get_ast_nodes,
     action = api.nvim_get_mode().mode ~= 'n' and select_range,  -- or jump
     backward = true
   }
